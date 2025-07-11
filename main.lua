@@ -1,24 +1,32 @@
-local lib = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/compkillerlib.lua"))()
+-- main.lua - Gọi thư viện UI chuyên nghiệp từ repo hviet2510/nozalo
 
-local win = lib:CreateWindow("Nozalo UI")
-local tab = win:CreateTab("Main")
+local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/compkillerlib.lua"))()
 
-tab:AddButton("Kill All", function()
-    print("Kill all executed")
+local window = ui:CreateWindow("⚔️ Nozalo UI - 5★ Pro")
+
+local tab = window:CreateTab("Main")
+
+-- Button
+tab:AddButton("🔥 Kill All", function()
+    print("[Nozalo] Kill All activated")
 end)
 
-tab:AddToggle("Auto Kill", false, function(state)
-    print("Auto Kill:", state)
+-- Toggle
+tab:AddToggle("☠️ Auto Kill", false, function(state)
+    print("[Nozalo] Auto Kill:", state)
 end)
 
-tab:AddDropdown("Weapon", {"Sword", "Gun", "Melee"}, function(option)
-    print("Selected weapon:", option)
+-- Dropdown
+tab:AddDropdown("⚔️ Weapon", {"Katana", "Gun", "Dark Blade", "Electric Claw"}, function(selected)
+    print("[Nozalo] Selected weapon:", selected)
 end)
 
-tab:AddSlider("Power", 1, 10, 5, function(value)
-    print("Power set to:", value)
+-- Slider
+tab:AddSlider("💥 Power", 1, 10, 5, function(value)
+    print("[Nozalo] Power level set to:", value)
 end)
 
-tab:AddInputBox("Custom Name", "Type name...", function(text)
-    print("You typed:", text)
+-- Input Box
+tab:AddInputBox("🔤 Enter Target Name", "Ex: Bandit", function(text)
+    print("[Nozalo] Target:", text)
 end)
