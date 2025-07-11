@@ -1,4 +1,4 @@
--- compkillerlib.lua | Nozalo UI Pro | By hviet2510 x ChatGPT
+-- compkillerlib.lua | Nozalo UI v2.0 | Mobile-ready + Beautiful Toggles
 
 local CompLib = {}
 
@@ -8,18 +8,18 @@ function CompLib:CreateWindow(titleText)
 	gui.Name = "NozaloUI"
 	gui.ResetOnSpawn = false
 
-	-- Toggle visibility API
+	-- Toggle API
 	local api = {}
 
 	local frame = Instance.new("Frame", gui)
 	frame.Name = "MainFrame"
-	frame.Size = UDim2.new(0, 420, 0, 360)
-	frame.Position = UDim2.new(0.5, -210, 0.5, -180)
+	frame.Size = UDim2.new(0.85, 0, 0.6, 0) -- Mobile co giãn
+	frame.Position = UDim2.new(0.5, 0, 0.5, 0)
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
 	frame.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 	frame.BorderSizePixel = 0
 	frame.Active = true
 	frame.Draggable = true
-	frame.AnchorPoint = Vector2.new(0.5, 0.5)
 
 	local corner = Instance.new("UICorner", frame)
 	corner.CornerRadius = UDim.new(0, 10)
@@ -33,16 +33,21 @@ function CompLib:CreateWindow(titleText)
 	title.TextSize = 22
 
 	local container = Instance.new("ScrollingFrame", frame)
-	container.Position = UDim2.new(0, 10, 0, 50)
-	container.Size = UDim2.new(1, -20, 1, -60)
+	container.Position = UDim2.new(0, 0, 0, 40)
+	container.Size = UDim2.new(1, 0, 1, -40)
 	container.CanvasSize = UDim2.new(0, 0, 0, 0)
 	container.ScrollBarThickness = 5
 	container.BackgroundTransparency = 1
 	container.AutomaticCanvasSize = Enum.AutomaticSize.Y
 
-	local list = Instance.new("UIListLayout", container)
-	list.Padding = UDim.new(0, 8)
-	list.SortOrder = Enum.SortOrder.LayoutOrder
+	local layout = Instance.new("UIListLayout", container)
+	layout.Padding = UDim.new(0, 8)
+	layout.SortOrder = Enum.SortOrder.LayoutOrder
+
+	local padding = Instance.new("UIPadding", container)
+	padding.PaddingLeft = UDim.new(0, 10)
+	padding.PaddingRight = UDim.new(0, 10)
+	padding.PaddingTop = UDim.new(0, 8)
 
 	local function createBase(height)
 		local f = Instance.new("Frame")
@@ -54,16 +59,16 @@ function CompLib:CreateWindow(titleText)
 		return f
 	end
 
-	local function createTextButton(text)
-		local btn = Instance.new("TextButton")
-		btn.Size = UDim2.new(1, 0, 1, 0)
-		btn.BackgroundTransparency = 1
-		btn.Text = text
-		btn.TextColor3 = Color3.new(1, 1, 1)
-		btn.Font = Enum.Font.Gotham
-		btn.TextSize = 18
-		btn.TextXAlignment = Enum.TextXAlignment.Left
-		return btn
+	local function createTextLabel()
+		local lbl = Instance.new("TextLabel")
+		lbl.Size = UDim2.new(1, 0, 1, 0)
+		lbl.BackgroundTransparency = 1
+		lbl.TextColor3 = Color3.new(1, 1, 1)
+		lbl.Font = Enum.Font.Gotham
+		lbl.TextSize = 18
+		lbl.TextXAlignment = Enum.TextXAlignment.Left
+		lbl.Text = ""
+		return lbl
 	end
 
 	local ui = {}
@@ -72,8 +77,14 @@ function CompLib:CreateWindow(titleText)
 		local frame = createBase()
 		frame.Parent = container
 
-		local btn = createTextButton("  " .. text)
-		btn.Parent = frame
+		local btn = Instance.new("TextButton", frame)
+		btn.Size = UDim2.new(1, 0, 1, 0)
+		btn.BackgroundTransparency = 1
+		btn.Text = "  " .. text
+		btn.TextColor3 = Color3.new(1, 1, 1)
+		btn.Font = Enum.Font.Gotham
+		btn.TextSize = 18
+		btn.TextXAlignment = Enum.TextXAlignment.Left
 
 		btn.MouseButton1Click:Connect(function()
 			pcall(callback)
@@ -85,18 +96,22 @@ function CompLib:CreateWindow(titleText)
 		local frame = createBase()
 		frame.Parent = container
 
-		local btn = createTextButton("")
-		btn.Parent = frame
+		local label = createTextLabel()
+		label.Parent = frame
 
 		local function update()
-			btn.Text = "  [" .. (state and "✓" or "✗") .. "] " .. text
+			local icon = state and "🟢" or "⚫️"
+			local box = state and "⬛" or "◻️"
+			label.Text = string.format("  %s %s %s", icon, box, text)
 		end
 		update()
 
-		btn.MouseButton1Click:Connect(function()
-			state = not state
-			update()
-			pcall(callback, state)
+		frame.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				state = not state
+				update()
+				pcall(callback, state)
+			end
 		end)
 	end
 
@@ -105,13 +120,16 @@ function CompLib:CreateWindow(titleText)
 		local frame = createBase()
 		frame.Parent = container
 
-		local btn = createTextButton("  " .. name .. ": " .. (list[1] or "None"))
-		btn.Parent = frame
+		local label = createTextLabel()
+		label.Parent = frame
+		label.Text = "  " .. name .. ": " .. (list[1] or "None")
 
-		btn.MouseButton1Click:Connect(function()
-			index = (index % #list) + 1
-			btn.Text = "  " .. name .. ": " .. list[index]
-			pcall(callback, list[index])
+		frame.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				index = (index % #list) + 1
+				label.Text = "  " .. name .. ": " .. list[index]
+				pcall(callback, list[index])
+			end
 		end)
 	end
 
@@ -120,19 +138,17 @@ function CompLib:CreateWindow(titleText)
 		local frame = createBase()
 		frame.Parent = container
 
-		local btn = createTextButton("")
-		btn.Parent = frame
+		local label = createTextLabel()
+		label.Parent = frame
+		label.Text = string.format("  %s: %d", name, val)
 
-		local function update()
-			btn.Text = "  " .. name .. ": " .. tostring(val)
-		end
-		update()
-
-		btn.MouseButton1Click:Connect(function()
-			val = val + 1
-			if val > max then val = min end
-			update()
-			pcall(callback, val)
+		frame.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				val = val + 1
+				if val > max then val = min end
+				label.Text = string.format("  %s: %d", name, val)
+				pcall(callback, val)
+			end
 		end)
 	end
 
@@ -150,7 +166,6 @@ function CompLib:CreateWindow(titleText)
 		box.TextSize = 18
 		box.ClearTextOnFocus = false
 		box.TextXAlignment = Enum.TextXAlignment.Left
-		box.Text = ""
 
 		box.FocusLost:Connect(function(enter)
 			if enter and box.Text ~= "" then
