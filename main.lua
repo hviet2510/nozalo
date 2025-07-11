@@ -1,6 +1,6 @@
 -- main.lua - Gọi thư viện UI chuyên nghiệp từ repo hviet2510/nozalo
 
-local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/compkillerlib.lua"))()
+local ui = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/refs/heads/main/compkillerlib.lua"))()
 
 local window = ui:CreateWindow("⚔️ Nozalo UI - 5★ Pro")
 
