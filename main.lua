@@ -1,20 +1,20 @@
--- main.lua
 print("[Main] Đang khởi động NamerPro UI...")
 
--- Tải UI
+-- Load Rayfield UI
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/Rayfield.lua"))()
 print("[Main] Đã tải Rayfield UI")
 
--- Tải module AutoFarm (AutoFarm sẽ tự load các phụ thuộc bên trong)
+-- Load AutoFarm module
 local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
 print("[Main] Đã tải AutoFarm")
 
--- Tạo cửa sổ
+-- Tạo UI
 local Window = Rayfield:CreateWindow({
 	Name = "NamerPro UI",
 	LoadingTitle = "Đang khởi động...",
 	LoadingSubtitle = "by hviet2510",
 	ConfigurationSaving = {Enabled = false},
+	Discord = {Enabled = false},
 	KeySystem = false
 })
 
@@ -25,19 +25,32 @@ local FarmTab = Window:CreateTab("Farm Level", 4483362458)
 FarmTab:CreateToggle({
 	Name = "Auto Farm",
 	CurrentValue = false,
-	Flag = "AutoFarm",
-	Callback = function(Value)
-		AutoFarm.Toggle(Value)
+	Flag = "AutoFarmEnabled",
+	Callback = function(v)
+		AutoFarm.Toggle(v)
 	end
 })
 
--- Dropdown chọn tool
-FarmTab:CreateInput({
-	Name = "Tên Tool",
-	PlaceholderText = "Ví dụ: Combat, Katana...",
-	RemoveTextAfterFocusLost = true,
-	Callback = function(text)
-		AutoFarm.SetTool(text)
+-- Dropdown chọn tool từ túi
+local Players = game:GetService("Players")
+local lp = Players.LocalPlayer
+
+local function GetToolList()
+	local tools = {}
+	for _, item in ipairs(lp.Backpack:GetChildren()) do
+		if item:IsA("Tool") then
+			table.insert(tools, item.Name)
+		end
+	end
+	return tools
+end
+
+FarmTab:CreateDropdown({
+	Name = "Chọn Tool để farm",
+	Options = GetToolList(),
+	CurrentOption = nil,
+	Callback = function(selected)
+		AutoFarm.SetTool(selected)
 	end
 })
 
@@ -47,8 +60,8 @@ FarmTab:CreateSlider({
 	Range = {5, 30},
 	Increment = 1,
 	CurrentValue = 10,
-	Callback = function(v)
-		AutoFarm.SetRange(v)
+	Callback = function(val)
+		AutoFarm.SetRange(val)
 	end
 })
 
