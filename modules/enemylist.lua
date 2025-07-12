@@ -1,33 +1,20 @@
 return {
-    {
-        Name = "Bandit",
-        LevelRequired = 0,
-        LevelMax = 9,
-    },
-    {
-        Name = "Monkey",
-        LevelRequired = 10,
-        LevelMax = 14,
-    },
-    {
-        Name = "Gorilla",
-        LevelRequired = 15,
-        LevelMax = 29,
-    },
-    {
-        Name = "Pirate",
-        LevelRequired = 30,
-        LevelMax = 39,
-    },
-    {
-        Name = "Brute",
-        LevelRequired = 40,
-        LevelMax = 59,
-    },
-    {
-        Name = "Desert Bandit",
-        LevelRequired = 60,
-        LevelMax = 74,
-    },
-    -- 👉 Bạn có thể thêm đầy đủ danh sách Sea 1 ở đây
+    { Name = "Bandit", MinLevel = 1, MaxLevel = 15 },
+    { Name = "Monkey", MinLevel = 16, MaxLevel = 30 },
+    { Name = "Gorilla", MinLevel = 31, MaxLevel = 55 },
+    { Name = "Pirate", MinLevel = 56, MaxLevel = 70 },
+    { Name = "Brute", MinLevel = 71, MaxLevel = 90 },
+    { Name = "Desert Bandit", MinLevel = 91, MaxLevel = 110 },
+    { Name = "Desert Officer", MinLevel = 111, MaxLevel = 135 },
+    { Name = "Snow Bandit", MinLevel = 136, MaxLevel = 160 },
+    { Name = "Snowman", MinLevel = 161, MaxLevel = 190 },
+    { Name = "Chief Petty Officer", MinLevel = 191, MaxLevel = 210 },
+    { Name = "Sky Bandit", MinLevel = 211, MaxLevel = 250 },
+    { Name = "Dark Master", MinLevel = 251, MaxLevel = 300 },
+    { Name = "Toga Warrior", MinLevel = 301, MaxLevel = 375 },
+    { Name = "Gladiator", MinLevel = 376, MaxLevel = 450 },
+    { Name = "Military Soldier", MinLevel = 451, MaxLevel = 525 },
+    { Name = "Military Spy", MinLevel = 526, MaxLevel = 600 },
+    { Name = "Fishman Warrior", MinLevel = 601, MaxLevel = 650 },
+    { Name = "Fishman Commando", MinLevel = 651, MaxLevel = 700 }
 }
