@@ -1,26 +1,28 @@
--- Log bắt đầu
-print("[Main] 🔧 Khởi động hệ thống...")
-
--- Tải UI
+-- Load Rayfield UI
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/Rayfield.lua"))()
 
--- Tải các module
+-- Load các module
 local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
-print("[Main] ✅ Tải AutoFarm thành công!")
+local EnemyList = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/enemylist.lua"))()
 
--- Tạo giao diện UI
+-- Tạo cửa sổ UI
 local Window = Rayfield:CreateWindow({
-	Name = "NamerPro UI",
-	LoadingTitle = "Đang khởi động...",
-	LoadingSubtitle = "By hviet2510",
-	ConfigurationSaving = { Enabled = false },
-	Discord = { Enabled = false },
+	Name = "NamerPro | Auto Farm",
+	LoadingTitle = "Đang tải...",
+	LoadingSubtitle = "by hviet2510",
+	ConfigurationSaving = {
+		Enabled = false
+	},
+	Discord = {
+		Enabled = false
+	},
 	KeySystem = false
 })
 
--- Tạo Tab Farm
-local FarmTab = Window:CreateTab("Farm Level", 4483362458)
+-- Tab Farm
+local FarmTab = Window:CreateTab("⚔️ Farm Level", 4483362458)
 
+-- Auto Farm Toggle
 FarmTab:CreateToggle({
 	Name = "Auto Farm",
 	CurrentValue = false,
@@ -30,21 +32,37 @@ FarmTab:CreateToggle({
 	end
 })
 
-FarmTab:CreateInput({
-	Name = "Tên Tool",
-	PlaceholderText = "Tên tool cần dùng",
-	RemoveTextAfterFocusLost = true,
-	Callback = function(tool)
-		AutoFarm.SetTool(tool)
+-- Chuyển sang dropdown tool
+local toolNames = {}
+for _, tool in ipairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+	if tool:IsA("Tool") then
+		table.insert(toolNames, tool.Name)
+	end
+end
+if #toolNames == 0 then
+	table.insert(toolNames, "Không có tool nào")
+end
+
+FarmTab:CreateDropdown({
+	Name = "Chọn Tool",
+	Options = toolNames,
+	CurrentOption = toolNames[1],
+	Flag = "ToolDropdown",
+	Callback = function(selected)
+		if selected ~= "Không có tool nào" then
+			AutoFarm.SetTool(selected)
+			print("[AutoFarm] Đã chọn tool:", selected)
+		end
 	end
 })
 
+-- Khoảng cách đánh quái
 FarmTab:CreateSlider({
-	Name = "Khoảng cách tấn công",
+	Name = "Khoảng cách đánh quái",
 	Range = {5, 30},
 	Increment = 1,
 	CurrentValue = 10,
-	Callback = function(distance)
-		AutoFarm.SetRange(distance)
+	Callback = function(val)
+		AutoFarm.SetRange(val)
 	end
 })
