@@ -1,94 +1,38 @@
--- main.lua | Full UI Test | dùng Rayfield tự host (hviet2510/nozalo)
-
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/Rayfield.lua"))()
 
 local Window = Rayfield:CreateWindow({
-	Name = "⚙️ Nozalo UI Full Test",
-	LoadingTitle = "Loading Interface...",
-	LoadingSubtitle = "Powered by Rayfield UI",
+	Name = "Nozalo Hub",
+	Theme = "Default",
+	LoadingTitle = "Đang tải...",
+	LoadingSubtitle = "Tùy chỉnh giao diện",
 	ConfigurationSaving = {
 		Enabled = true,
-		FolderName = "Nozalo", -- Lưu config vào folder này
-		FileName = "config"    -- Tên file config
+		FolderName = "Nozalo",
+		FileName = "NozaloConfig"
 	},
-	KeySystem = false, -- Đặt true nếu muốn dùng key để mở UI
+	KeySystem = true,
+	KeySettings = {
+		Title = "Nozalo",
+		Subtitle = "Nhập key",
+		Note = "Key nằm trong Discord",
+		FileName = "KeyFile",
+		SaveKey = true,
+		GrabKeyFromSite = false,
+		Key = {"nozalo123"}
+	}
 })
 
-local Tab = Window:CreateTab("Main", 4483362458)
+-- 🎨 Theme tab
+local ThemeTab = Window:CreateTab("🎨 Theme", 4483362458)
 
--- 🔘 BUTTON
-Tab:CreateButton({
-	Name = "Kill All",
-	Callback = function()
-		Rayfield:Notify({
-			Title = "Info",
-			Content = "Kill All Executed!",
-			Duration = 3,
-		})
-	end,
-})
-
--- ✅ TOGGLE
-Tab:CreateToggle({
-	Name = "Auto Kill",
-	CurrentValue = false,
-	Callback = function(Value)
-		print("AutoKill:", Value)
-	end,
-})
-
--- ⬇️ DROPDOWN
-Tab:CreateDropdown({
-	Name = "Weapon",
-	Options = {"Katana", "Claw", "Gun", "Dark Blade"},
-	CurrentOption = "Katana",
-	Callback = function(Value)
-		print("Selected Weapon:", Value)
-	end,
-})
-
--- 🎚 SLIDER
-Tab:CreateSlider({
-	Name = "Power Level",
-	Range = {1, 10},
-	Increment = 1,
-	CurrentValue = 5,
-	Callback = function(Value)
-		print("Power:", Value)
-	end,
-})
-
--- 🔤 INPUT BOX
-Tab:CreateInput({
-	Name = "Target Name",
-	PlaceholderText = "Ex: Bandit",
-	RemoveTextAfterFocusLost = true,
-	Callback = function(Text)
-		print("Target:", Text)
-	end,
-})
-
--- ⌨️ KEYBIND
-Tab:CreateKeybind({
-	Name = "Kill Key",
-	CurrentKeybind = "F",
-	HoldToInteract = false,
-	Callback = function()
-		print("Keybind Pressed")
-	end,
-})
-
--- 🧪 SECTION TEST
-local Section = Tab:CreateSection("Advanced")
-
--- 📢 NOTIFY TEST
-Tab:CreateButton({
-	Name = "Notify Me",
-	Callback = function()
-		Rayfield:Notify({
-			Title = "Notification",
-			Content = "This is a Rayfield-style notify!",
-			Duration = 4,
-		})
+ThemeTab:CreateDropdown({
+	Name = "Chọn Giao Diện",
+	Options = {
+		"Default", "Dark", "Light", "Abyss",
+		"Discord", "Red and Black", "Midnight"
+	},
+	CurrentOption = "Default",
+	Callback = function(Theme)
+		Rayfield:ChangeTheme(Theme)
 	end,
 })
