@@ -1,16 +1,8 @@
--- functions.lua
-
 local Functions = {}
 
--- Trang bị tool theo tên
 function Functions.EquipTool(player, toolName)
 	local backpack = player:FindFirstChild("Backpack")
-	if not backpack then return end
-
-	if typeof(toolName) ~= "string" or toolName == "" then
-		warn("[EquipTool] Tên tool không hợp lệ:", toolName)
-		return
-	end
+	if not backpack or typeof(toolName) ~= "string" then return end
 
 	for _, tool in pairs(backpack:GetChildren()) do
 		if tool:IsA("Tool") and tool.Name:lower() == toolName:lower() then
@@ -20,35 +12,31 @@ function Functions.EquipTool(player, toolName)
 	end
 end
 
--- Tween di chuyển đến vị trí
-function Functions.TweenTo(player, position)
-	local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
+function Functions.TweenToBehind(player, mob, distance)
+	local char = player.Character
+	local hrp = char and char:FindFirstChild("HumanoidRootPart")
+	local mobHRP = mob and mob:FindFirstChild("HumanoidRootPart")
+	if not hrp or not mobHRP then return end
 
-	local TweenService = game:GetService("TweenService")
-	local tween = TweenService:Create(hrp, TweenInfo.new(0.5), {CFrame = CFrame.new(position)})
+	local behindPos = mobHRP.Position - (mobHRP.CFrame.LookVector.Unit * (distance or 10))
+	local goal = {CFrame = CFrame.new(behindPos)}
+	local tween = game:GetService("TweenService"):Create(hrp, TweenInfo.new(0.5, Enum.EasingStyle.Linear), goal)
 	tween:Play()
+	tween.Completed:Wait()
 end
 
--- Tự động nhận nhiệm vụ theo tên quái
 function Functions.AutoQuest(player, enemyName)
-	if typeof(enemyName) ~= "string" then
-		warn("[AutoQuest] Tên quái không hợp lệ:", enemyName)
-		return
-	end
-
 	local quests = workspace:FindFirstChild("QuestSystem")
 	if not quests then return end
 
-	local quest = quests:FindFirstChild("GetQuest")
-	if quest and quest:FindFirstChild(enemyName) then
-		local mainClick = quest:FindFirstChild("ClickDetector")
-		local subClick = quest[enemyName]:FindFirstChild("ClickDetector")
+	local questGiver = quests:FindFirstChild("GetQuest")
+	if questGiver and questGiver:FindFirstChild("ClickDetector") then
+		fireclickdetector(questGiver.ClickDetector)
+		task.wait(0.5)
 
-		if mainClick and subClick then
-			fireclickdetector(mainClick)
-			task.wait(0.5)
-			fireclickdetector(subClick)
+		local questButton = questGiver:FindFirstChild(enemyName)
+		if questButton and questButton:FindFirstChild("ClickDetector") then
+			fireclickdetector(questButton.ClickDetector)
 		end
 	end
 end
