@@ -22,17 +22,13 @@ local Window = Rayfield:CreateWindow({
 	}
 })
 
--- 🎨 Theme tab
-local ThemeTab = Window:CreateTab("🎨 Theme", 4483362458)
-
-ThemeTab:CreateDropdown({
-	Name = "Chọn Giao Diện",
-	Options = {
-		"Default", "Dark", "Light", "Abyss",
-		"Discord", "Red and Black", "Midnight"
-	},
-	CurrentOption = "Default",
-	Callback = function(Theme)
-		Rayfield:ChangeTheme(Theme)
+Tab:CreateToggle({
+	Name = "Auto Farm Quái Gần Nhất",
+	CurrentValue = false,
+	Callback = function(state)
+		_G.AutoFarmEnabled = state
+		if state then
+			loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
+		end
 	end,
 })
