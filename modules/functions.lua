@@ -1,64 +1,38 @@
-local Functions = {}
+local TweenService = game:GetService("TweenService")
+local module = {}
 
-local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+function module.TweenTo(player, pos)
+    local char = player.Character or player.CharacterAdded:Wait()
+    local hrp = char:WaitForChild("HumanoidRootPart", 5)
+    if not hrp then return end
 
--- ✅ Danh sách tool an toàn, không gây lỗi
-local SafeTools = {
-    "Combat", "Black Leg", "Electric", "Sharkman Karate", "Superhuman", "Dragon Breath"
-}
+    local dist = (hrp.Position - pos).Magnitude
+    local tween = TweenService:Create(hrp, TweenInfo.new(dist / 120), {CFrame = CFrame.new(pos)})
+    tween:Play()
+    tween.Completed:Wait()
+end
 
--- ⚙️ Tự động trang bị tool nếu có
-function Functions.EquipTool()
-    local Backpack = LocalPlayer:FindFirstChild("Backpack")
-    local Character = LocalPlayer.Character
-    if not Backpack or not Character then return end
+function module.EquipTool(player, toolName)
+    local bp = player:WaitForChild("Backpack")
+    local char = player.Character or player.CharacterAdded:Wait()
+    if not toolName then return end
 
-    local selectedTool = _G.SelectedTool or "Combat"
-    local foundTool = nil
-
-    for _, tool in pairs(Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.Name == selectedTool then
-            foundTool = tool
-            break
-        end
-    end
-
-    -- Nếu không tìm thấy, chuyển sang "Combat"
-    if not foundTool then
-        warn("[⚠️] Tool không hợp lệ hoặc không tìm thấy:", selectedTool)
-        _G.SelectedTool = "Combat"
-        for _, tool in pairs(Backpack:GetChildren()) do
-            if tool:IsA("Tool") and tool.Name == "Combat" then
-                foundTool = tool
-                break
-            end
-        end
-    end
-
-    if foundTool and Character:FindFirstChild("Humanoid") then
-        Character.Humanoid:EquipTool(foundTool)
-        print("[✅] Đã trang bị tool:", foundTool.Name)
-    else
-        warn("[❌] Không thể trang bị tool.")
+    local tool = char:FindFirstChild(toolName) or bp:FindFirstChild(toolName)
+    if tool then
+        tool.Parent = char
     end
 end
 
--- 📌 Kiểm tra tool có an toàn không
-function Functions.IsToolSafe(name)
-    return table.find(SafeTools, name) ~= nil
+function module.AutoQuest(player, mobName)
+    local questNpc = workspace:FindFirstChild("QuestNPC")
+    if not questNpc then return end
+
+    if player.PlayerGui:FindFirstChild("QuestFrame") then return end
+
+    module.TweenTo(player, questNpc.Position + Vector3.new(0, 3, 0))
+    fireclickdetector(questNpc:FindFirstChildOfClass("ClickDetector"))
+    task.wait(0.5)
+    -- Có thể bổ sung đoạn chọn nhiệm vụ cụ thể sau
 end
 
--- 📥 Nhận nhiệm vụ (gọi từ autofarm)
-function Functions.GetQuest(questName)
-    local npc = workspace:FindFirstChild(questName)
-    if npc and (npc:FindFirstChild("Head") or npc:FindFirstChildOfClass("Part")) then
-        pcall(function()
-            fireclickdetector(npc:FindFirstChildWhichIsA("ClickDetector"))
-        end)
-    else
-        warn("Không tìm thấy NPC nhận nhiệm vụ:", questName)
-    end
-end
-
-return Functions
+return module
