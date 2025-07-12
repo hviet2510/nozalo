@@ -1,37 +1,35 @@
 local FarmLogic = {}
 
+-- Lấy level từ GUI trong Blox Fruits (Delta compatible)
+local function GetLevelFromGui()
+	local gui = game.Players.LocalPlayer:FindFirstChild("PlayerGui")
+	if gui then
+		local main = gui:FindFirstChild("Main")
+		if main and main:FindFirstChild("Level") then
+			local text = main.Level.Text
+			return tonumber(string.match(text, "%d+"))
+		end
+	end
+	return nil
+end
+
 function FarmLogic.GetEnemy(player, enemyList)
-	local leaderstats = player:FindFirstChild("leaderstats")
-	if not leaderstats then
-		warn("[FarmLogic] Không tìm thấy leaderstats!")
-		return nil
-	end
-
-	local level = leaderstats:FindFirstChild("Level")
-	if not level then
-		warn("[FarmLogic] Không tìm thấy Level trong leaderstats!")
-		return nil
-	end
-
-	local lv = level.Value
+	local lv = GetLevelFromGui()
 	if not lv then
-		warn("[FarmLogic] Level không hợp lệ!")
+		warn("[FarmLogic] ❌ Không lấy được level từ GUI.")
 		return nil
 	end
 
-	for _, enemy in pairs(enemyList) do
-		if lv >= enemy.MinLevel and lv <= enemy.MaxLevel then
-			for _, mob in pairs(workspace.Enemies:GetChildren()) do
-				if mob:IsA("Model") and mob:FindFirstChild("Humanoid") and mob:FindFirstChild("HumanoidRootPart") then
-					if mob.Name:find(enemy.Name) and mob.Humanoid.Health > 0 then
-						return mob
-					end
+	for _, e in ipairs(enemyList) do
+		if lv >= e.MinLevel and lv <= e.MaxLevel then
+			for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+				if mob.Name:find(e.Name) and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+					return mob
 				end
 			end
 		end
 	end
 
-	warn("[FarmLogic] Không tìm thấy quái phù hợp level: " .. lv)
 	return nil
 end
 
