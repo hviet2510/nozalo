@@ -1,28 +1,34 @@
--- farmlogic.lua
-
 local FarmLogic = {}
 
--- Tìm quái gần nhất trong danh sách
-function FarmLogic.GetEnemy(player, enemyTable)
-    if typeof(enemyTable) ~= "table" then
-        warn("[FarmLogic] enemyTable không hợp lệ:", typeof(enemyTable))
+function FarmLogic.GetEnemy(player, enemyList)
+    -- Lấy leaderstats và Level
+    local leaderstats = player:FindFirstChild("leaderstats")
+    if not leaderstats then
+        warn("[FarmLogic] Không tìm thấy leaderstats!")
         return nil
     end
 
-    local nearest = nil
-    local shortest = math.huge
-    for _, enemyName in ipairs(enemyTable) do
-        for _, v in ipairs(workspace.Enemies:GetChildren()) do
-            if v.Name == enemyName and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 then
-                local dist = (player.Character.HumanoidRootPart.Position - v.HumanoidRootPart.Position).Magnitude
-                if dist < shortest then
-                    nearest = v
-                    shortest = dist
+    local levelValue = leaderstats:FindFirstChild("Level")
+    if not levelValue then
+        warn("[FarmLogic] Không tìm thấy Level trong leaderstats!")
+        return nil
+    end
+
+    local level = levelValue.Value
+
+    -- Tìm enemy phù hợp với level
+    for _, enemy in ipairs(enemyList) do
+        if level >= enemy.MinLevel and level <= enemy.MaxLevel then
+            -- Tìm mob còn sống trùng tên
+            for _, mob in pairs(workspace.Enemies:GetChildren()) do
+                if mob.Name == enemy.Name and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
+                    return mob
                 end
             end
         end
     end
-    return nearest
+
+    return nil
 end
 
 return FarmLogic
