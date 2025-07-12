@@ -1,57 +1,46 @@
--- 📂 modules/autofarm.lua | Auto Farm Gần Nhất (Cơ Bản)
+-- 🌾 AutoFarm | Phiên bản VIP chuẩn Hub trả phí (chỉ dành cho khách dùng Rayfield và repo module hóa)
 
 if _G.AutoFarmStarted then return end
 _G.AutoFarmStarted = true
 
+-- 📦 Load module hỗ trợ
+local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/functions.lua"))()
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
+local LP = Players.LocalPlayer
 
-local Player = Players.LocalPlayer
-local Character = Player.Character or Player.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
+-- ⚙️ Cấu hình mặc định
+local TOOL_NAME = _G.SelectedTool or "Combat"
+local DISTANCE_BEHIND = 5
+local TWEEN_SPEED = 250
 
-local DISTANCE = 5
-local SPEED = 250
-
--- 📌 Tìm quái gần nhất
-local function GetClosestEnemy()
-	local closest, shortest = nil, math.huge
-	for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-		if enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") and enemy.Humanoid.Health > 0 then
-			local dist = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
-			if dist < shortest then
-				shortest = dist
-				closest = enemy
+-- 🔁 Vòng lặp farm
+task.spawn(function()
+	while _G.AutoFarmEnabled do
+		task.wait(0.1)
+		pcall(function()
+			-- Làm mới nhân vật nếu chết
+			if not LP.Character or not LP.Character:FindFirstChild("HumanoidRootPart") then
+				Functions.RefreshCharacter()
+				return
 			end
-		end
-	end
-	return closest
-end
 
--- 📌 Di chuyển bằng Tween
-local function TweenTo(pos)
-	local tween = TweenService:Create(
-		HumanoidRootPart,
-		TweenInfo.new((HumanoidRootPart.Position - pos.Position).Magnitude / SPEED, Enum.EasingStyle.Linear),
-		{CFrame = pos}
-	)
-	tween:Play()
-	tween.Completed:Wait()
-end
+			-- Nhận nhiệm vụ nếu chưa có
+			Functions.AcceptQuest()
 
--- 🌀 Vòng lặp auto farm
-spawn(function()
-	while _G.AutoFarmEnabled and task.wait() do
-		local enemy = GetClosestEnemy()
-		if enemy and enemy:FindFirstChild("HumanoidRootPart") then
-			local targetCFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -DISTANCE)
-			pcall(function()
-				TweenTo(targetCFrame)
-				if Character:FindFirstChildOfClass("Tool") then
-					Character:FindFirstChildOfClass("Tool"):Activate()
-				end
-			end)
-		end
+			-- Tìm quái gần nhất để farm
+			local enemy = Functions.GetClosestEnemy()
+			if enemy and enemy:FindFirstChild("HumanoidRootPart") and enemy.Humanoid.Health > 0 then
+				-- Di chuyển ra sau quái
+				local target = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -DISTANCE_BEHIND)
+				Functions.TweenTo(target, TWEEN_SPEED)
+
+				-- Cầm vũ khí
+				Functions.EquipTool(TOOL_NAME)
+
+				-- Tấn công nếu có tool
+				local tool = LP.Character:FindFirstChildOfClass("Tool")
+				if tool then tool:Activate() end
+			end
+		end)
 	end
 end)
