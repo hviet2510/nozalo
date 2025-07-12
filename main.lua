@@ -1,15 +1,26 @@
+-- Log khởi động
+print("[Main] Đang khởi động NamerPro UI...")
+
 -- Load Rayfield UI
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/Rayfield.lua"))()
+print("[Main] Đã tải Rayfield UI")
 
--- Load các module
-local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
+-- Load module chính
 local EnemyList = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/enemylist.lua"))()
+local FarmLogic = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/farmlogic.lua"))()
+local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/functions.lua"))()
+local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
 
--- Tạo cửa sổ UI
+-- Gán module phụ cho AutoFarm
+AutoFarm.FarmLogic = FarmLogic
+AutoFarm.Functions = Functions
+AutoFarm.SetEnemyList(EnemyList)
+
+-- Tạo UI Window
 local Window = Rayfield:CreateWindow({
-	Name = "NamerPro | Auto Farm",
+	Name = "NamerPro UI",
 	LoadingTitle = "Đang tải...",
-	LoadingSubtitle = "by hviet2510",
+	LoadingSubtitle = "Delta Executor - by hviet2510",
 	ConfigurationSaving = {
 		Enabled = false
 	},
@@ -19,10 +30,11 @@ local Window = Rayfield:CreateWindow({
 	KeySystem = false
 })
 
--- Tab Farm
-local FarmTab = Window:CreateTab("⚔️ Farm Level", 4483362458)
+-- Tạo Tab Farm Level
+local FarmTab = Window:CreateTab("Auto Farm", 4483362458)
+FarmTab:CreateLabel("Farm quái tự động theo level")
 
--- Auto Farm Toggle
+-- Toggle bật/tắt Auto Farm
 FarmTab:CreateToggle({
 	Name = "Auto Farm",
 	CurrentValue = false,
@@ -32,37 +44,35 @@ FarmTab:CreateToggle({
 	end
 })
 
--- Chuyển sang dropdown tool
-local toolNames = {}
-for _, tool in ipairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
+-- Chọn Tool dùng để farm
+local toolList = {}
+for _, tool in pairs(game.Players.LocalPlayer.Backpack:GetChildren()) do
 	if tool:IsA("Tool") then
-		table.insert(toolNames, tool.Name)
+		table.insert(toolList, tool.Name)
 	end
 end
-if #toolNames == 0 then
-	table.insert(toolNames, "Không có tool nào")
-end
+if #toolList == 0 then table.insert(toolList, "Không có tool") end
 
 FarmTab:CreateDropdown({
 	Name = "Chọn Tool",
-	Options = toolNames,
-	CurrentOption = toolNames[1],
-	Flag = "ToolDropdown",
-	Callback = function(selected)
-		if selected ~= "Không có tool nào" then
-			AutoFarm.SetTool(selected)
-			print("[AutoFarm] Đã chọn tool:", selected)
+	Options = toolList,
+	CurrentOption = toolList[1],
+	Callback = function(value)
+		if value ~= "Không có tool" then
+			AutoFarm.SetTool(value)
 		end
 	end
 })
 
--- Khoảng cách đánh quái
+-- Chọn khoảng cách đánh
 FarmTab:CreateSlider({
 	Name = "Khoảng cách đánh quái",
 	Range = {5, 30},
 	Increment = 1,
 	CurrentValue = 10,
-	Callback = function(val)
-		AutoFarm.SetRange(val)
+	Callback = function(v)
+		AutoFarm.SetRange(v)
 	end
 })
+
+print("[Main] ✅ Giao diện đã sẵn sàng.")
