@@ -3,9 +3,17 @@
 local Functions = {}
 
 function Functions.EquipTool(player, toolName)
-    if not toolName then return end
-    for _, tool in ipairs(player.Backpack:GetChildren()) do
-        if tool:IsA("Tool") and tool.Name:lower():find(toolName:lower()) then
+    local backpack = player:FindFirstChild("Backpack")
+    if not backpack then return end
+
+    -- Kiểm tra toolName có hợp lệ là chuỗi không
+    if typeof(toolName) ~= "string" then
+        warn("[EquipTool] ToolName không phải là chuỗi:", toolName)
+        return
+    end
+
+    for _, tool in pairs(backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:lower() == toolName:lower() then
             tool.Parent = player.Character
             break
         end
