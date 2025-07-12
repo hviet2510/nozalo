@@ -22,6 +22,8 @@ local Window = Rayfield:CreateWindow({
 	}
 })
 
+local Tab = Window:CreateTab("⚔️ AutoFarm", 4483362458)
+
 Tab:CreateToggle({
 	Name = "Auto Farm Quái Gần Nhất",
 	CurrentValue = false,
