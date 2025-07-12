@@ -1,46 +1,80 @@
--- 📁 farmlogic.lua | Chọn enemy phù hợp với level người chơi (Sea 1)
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
 
-local module = {}
+local Logic = {}
+local EnemyList = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/enemylist.lua"))()
+local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/functions.lua"))()
 
-function module.GetTargetEnemy()
-	local Level = game.Players.LocalPlayer.Data.Level.Value
-
-	if Level >= 0 and Level < 15 then
-		return {
-			Name = "Bandit",
-			QuestName = "BanditQuest1",
-			QuestMob = "Bandit",
-			QuestPos = CFrame.new(1060, 17, 1547),
-			MobPos = CFrame.new(1150, 17, 1600)
-		}
-	elseif Level >= 15 and Level < 30 then
-		return {
-			Name = "Monkey",
-			QuestName = "JungleQuest",
-			QuestMob = "Monkey",
-			QuestPos = CFrame.new(-1600, 35, 145),
-			MobPos = CFrame.new(-1650, 30, 250)
-		}
-	elseif Level >= 30 and Level < 60 then
-		return {
-			Name = "Gorilla",
-			QuestName = "JungleQuest",
-			QuestMob = "Gorilla",
-			QuestPos = CFrame.new(-1235, 10, -480),
-			MobPos = CFrame.new(-1230, 10, -450)
-		}
-	elseif Level >= 60 and Level < 100 then
-		return {
-			Name = "Pirate",
-			QuestName = "BuggyQuest1",
-			QuestMob = "Pirate",
-			QuestPos = CFrame.new(-1140, 5, 3825),
-			MobPos = CFrame.new(-1210, 4, 4100)
-		}
-	end
-
-	-- Nếu chưa hỗ trợ level này
-	return nil
+function Logic.GetMobNameByLevel()
+    local level = LocalPlayer.Data.Level.Value
+    for _, enemy in pairs(EnemyList) do
+        if level >= enemy.LevelRequired and level <= enemy.LevelMax then
+            return enemy
+        end
+    end
+    return nil
 end
 
-return module
+function Logic.GetNearestMob(name)
+    local mobs = workspace.Enemies:GetChildren()
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    local nearest, distance = nil, math.huge
+
+    for _, mob in pairs(mobs) do
+        if mob.Name == name and mob:FindFirstChild("HumanoidRootPart") and mob.Humanoid.Health > 0 then
+            local dist = (mob.HumanoidRootPart.Position - root.Position).Magnitude
+            if dist < distance then
+                nearest = mob
+                distance = dist
+            end
+        end
+    end
+    return nearest
+end
+
+function Logic.TweenTo(pos)
+    local root = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if root then
+        local tween = TweenService:Create(root, TweenInfo.new(0.5), {CFrame = CFrame.new(pos)})
+        tween:Play()
+        tween.Completed:Wait()
+    end
+end
+
+function Logic.Attack(mob)
+    local tool = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Tool")
+    if tool then
+        tool:Activate()
+    end
+end
+
+function Logic.FarmMob(enemy)
+    Functions.StartQuest(enemy)
+    Functions.EquipTool()
+    task.wait(0.3)
+
+    local mob = Logic.GetNearestMob(enemy.Name)
+    if not mob then
+        Logic.TweenTo(enemy.Position)
+        task.wait(1)
+        mob = Logic.GetNearestMob(enemy.Name)
+    end
+
+    if mob then
+        Logic.TweenTo(mob.HumanoidRootPart.Position + Vector3.new(0, 5, 0))
+        repeat
+            Logic.Attack(mob)
+            task.wait(0.2)
+        until not mob or not mob.Parent or mob.Humanoid.Health <= 0
+    end
+end
+
+function Logic.FarmMobByLevel()
+    local enemy = Logic.GetMobNameByLevel()
+    if enemy then
+        Logic.FarmMob(enemy)
+    end
+end
+
+return Logic
