@@ -1,86 +1,64 @@
--- 🎯 functions.lua | Toàn bộ chức năng phụ trợ farm (Quest, Equip, Enemy, Tween)
--- Viết bởi ChatGPT dành cho hub của hviet2510/nozalo
+local Functions = {}
 
-local module = {}
-
--- 🌐 Services
 local Players = game:GetService("Players")
-local TweenService = game:GetService("TweenService")
-local RunService = game:GetService("RunService")
-
--- 📌 Biến toàn cục
 local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- 🧾 Nhận nhiệm vụ từ NPC có tên chứa "Quest"
-function module.AcceptQuest()
-	if LocalPlayer.PlayerGui:FindFirstChild("QuestGUI") then return end
+-- ✅ Danh sách tool an toàn, không gây lỗi
+local SafeTools = {
+    "Combat", "Black Leg", "Electric", "Sharkman Karate", "Superhuman", "Dragon Breath"
+}
 
-	for _, npc in pairs(workspace:GetChildren()) do
-		if npc:IsA("Model") and npc:FindFirstChild("Head") and npc.Name:lower():find("quest") then
-			local click = npc.Head:FindFirstChildOfClass("ClickDetector")
-			if click then
-				fireclickdetector(click)
-				task.wait(0.5)
+-- ⚙️ Tự động trang bị tool nếu có
+function Functions.EquipTool()
+    local Backpack = LocalPlayer:FindFirstChild("Backpack")
+    local Character = LocalPlayer.Character
+    if not Backpack or not Character then return end
 
-				local gui = LocalPlayer.PlayerGui:FindFirstChild("QuestGUI", true)
-				if gui and gui:FindFirstChild("Dialogue") then
-					local btn = gui.Dialogue:FindFirstChild("Button1")
-					if btn then
-						local btnClick = btn:FindFirstChildOfClass("ClickDetector")
-						if btnClick then fireclickdetector(btnClick) end
-					end
-				end
-			end
-			break
-		end
-	end
+    local selectedTool = _G.SelectedTool or "Combat"
+    local foundTool = nil
+
+    for _, tool in pairs(Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name == selectedTool then
+            foundTool = tool
+            break
+        end
+    end
+
+    -- Nếu không tìm thấy, chuyển sang "Combat"
+    if not foundTool then
+        warn("[⚠️] Tool không hợp lệ hoặc không tìm thấy:", selectedTool)
+        _G.SelectedTool = "Combat"
+        for _, tool in pairs(Backpack:GetChildren()) do
+            if tool:IsA("Tool") and tool.Name == "Combat" then
+                foundTool = tool
+                break
+            end
+        end
+    end
+
+    if foundTool and Character:FindFirstChild("Humanoid") then
+        Character.Humanoid:EquipTool(foundTool)
+        print("[✅] Đã trang bị tool:", foundTool.Name)
+    else
+        warn("[❌] Không thể trang bị tool.")
+    end
 end
 
--- 🛠 Equip vũ khí từ Backpack nếu chưa cầm
-function module.EquipTool(toolName)
-	if not Character:FindFirstChildOfClass("Tool") then
-		local tool = LocalPlayer.Backpack:FindFirstChild(toolName)
-		if tool then tool.Parent = Character end
-	end
+-- 📌 Kiểm tra tool có an toàn không
+function Functions.IsToolSafe(name)
+    return table.find(SafeTools, name) ~= nil
 end
 
--- 👺 Trả về quái gần nhất có thể farm
-function module.GetClosestEnemy()
-	local closest = nil
-	local minDistance = math.huge
-
-	for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-		local humanoid = enemy:FindFirstChild("Humanoid")
-		local hrp = enemy:FindFirstChild("HumanoidRootPart")
-
-		if humanoid and hrp and humanoid.Health > 0 then
-			local distance = (HumanoidRootPart.Position - hrp.Position).Magnitude
-			if distance < minDistance then
-				minDistance = distance
-				closest = enemy
-			end
-		end
-	end
-
-	return closest
+-- 📥 Nhận nhiệm vụ (gọi từ autofarm)
+function Functions.GetQuest(questName)
+    local npc = workspace:FindFirstChild(questName)
+    if npc and (npc:FindFirstChild("Head") or npc:FindFirstChildOfClass("Part")) then
+        pcall(function()
+            fireclickdetector(npc:FindFirstChildWhichIsA("ClickDetector"))
+        end)
+    else
+        warn("Không tìm thấy NPC nhận nhiệm vụ:", questName)
+    end
 end
 
--- 🚀 Di chuyển đến 1 vị trí bằng Tween mượt
-function module.TweenTo(targetCFrame, speed)
-	speed = speed or 250
-	local distance = (HumanoidRootPart.Position - targetCFrame.Position).Magnitude
-	local tweenInfo = TweenInfo.new(distance / speed, Enum.EasingStyle.Linear)
-	local tween = TweenService:Create(HumanoidRootPart, tweenInfo, {CFrame = targetCFrame})
-	tween:Play()
-	tween.Completed:Wait()
-end
-
--- 🔁 Làm mới biến nhân vật (khi chết / teleport)
-function module.RefreshCharacter()
-	Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-	HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
-end
-
-return module
+return Functions
