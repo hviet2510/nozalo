@@ -1,61 +1,50 @@
 -- Log bắt đầu
-print("[Main] Bắt đầu khởi chạy...")
+print("[Main] 🔧 Khởi động hệ thống...")
 
--- Tải Rayfield UI
+-- Tải UI
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/Rayfield.lua"))()
-print("[Main] Tải thành công Rayfield UI")
 
--- Tải các module farm
+-- Tải các module
 local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
-local EnemyList = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/enemylist.lua"))()
-print("[Main] Tải thành công AutoFarm & EnemyList")
+print("[Main] ✅ Tải AutoFarm thành công!")
 
--- Tạo cửa sổ UI
+-- Tạo giao diện UI
 local Window = Rayfield:CreateWindow({
 	Name = "NamerPro UI",
-	LoadingTitle = "Khởi động NamerPro...",
-	LoadingSubtitle = "by hviet2510",
-	ConfigurationSaving = {
-		Enabled = false
-	},
-	Discord = {
-		Enabled = false
-	},
+	LoadingTitle = "Đang khởi động...",
+	LoadingSubtitle = "By hviet2510",
+	ConfigurationSaving = { Enabled = false },
+	Discord = { Enabled = false },
 	KeySystem = false
 })
 
--- Tạo Tab Farm Level
+-- Tạo Tab Farm
 local FarmTab = Window:CreateTab("Farm Level", 4483362458)
 
--- Tạo Auto Farm Toggle
 FarmTab:CreateToggle({
 	Name = "Auto Farm",
 	CurrentValue = false,
 	Flag = "AutoFarm",
-	Callback = function(Value)
-		AutoFarm.Toggle(Value)
+	Callback = function(state)
+		AutoFarm.Toggle(state)
 	end
 })
 
--- (Tuỳ chọn) Set tool khi farm
 FarmTab:CreateInput({
-	Name = "Tên Tool muốn dùng",
-	PlaceholderText = "Melee / Kiếm / Vũ khí...",
+	Name = "Tên Tool",
+	PlaceholderText = "Tên tool cần dùng",
 	RemoveTextAfterFocusLost = true,
-	Callback = function(text)
-		AutoFarm.SetTool(text)
+	Callback = function(tool)
+		AutoFarm.SetTool(tool)
 	end
 })
 
--- (Tuỳ chọn) Khoảng cách đánh
 FarmTab:CreateSlider({
-	Name = "Khoảng cách đánh quái",
+	Name = "Khoảng cách tấn công",
 	Range = {5, 30},
 	Increment = 1,
 	CurrentValue = 10,
-	Callback = function(v)
-		AutoFarm.SetRange(v)
+	Callback = function(distance)
+		AutoFarm.SetRange(distance)
 	end
 })
-
-print("[Main] Hoàn tất khởi tạo UI và hệ thống Auto Farm!")
