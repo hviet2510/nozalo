@@ -1,25 +1,26 @@
--- modules/autofarm_nearest.lua | Auto Farm Quái Gần Nhất (Update Mạnh)
-if _G.AutoFarmThread then return end
-_G.AutoFarmEnabled = true
+-- 📂 modules/autofarm.lua | Auto Farm Gần Nhất (Cơ Bản)
+
+if _G.AutoFarmStarted then return end
+_G.AutoFarmStarted = true
 
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
-local LocalPlayer = Players.LocalPlayer
-local Character = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
-local RootPart = Character:WaitForChild("HumanoidRootPart")
 
--- ⚙️ Cài đặt
-local DISTANCE = 5      -- Khoảng cách giữ với quái
-local SPEED = 200       -- Tốc độ bay Tween
+local Player = Players.LocalPlayer
+local Character = Player.Character or Player.CharacterAdded:Wait()
+local HumanoidRootPart = Character:WaitForChild("HumanoidRootPart")
 
--- 🔍 Tìm quái gần nhất
-local function GetNearestEnemy()
+local DISTANCE = 5
+local SPEED = 250
+
+-- 📌 Tìm quái gần nhất
+local function GetClosestEnemy()
 	local closest, shortest = nil, math.huge
 	for _, enemy in pairs(workspace.Enemies:GetChildren()) do
-		if enemy:IsA("Model") and enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") then
-			local dist = (RootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
-			if enemy.Humanoid.Health > 0 and dist < shortest then
+		if enemy:FindFirstChild("Humanoid") and enemy:FindFirstChild("HumanoidRootPart") and enemy.Humanoid.Health > 0 then
+			local dist = (HumanoidRootPart.Position - enemy.HumanoidRootPart.Position).Magnitude
+			if dist < shortest then
 				shortest = dist
 				closest = enemy
 			end
@@ -28,32 +29,29 @@ local function GetNearestEnemy()
 	return closest
 end
 
--- 🚀 Tween đến vị trí
-local function TweenTo(targetCFrame)
+-- 📌 Di chuyển bằng Tween
+local function TweenTo(pos)
 	local tween = TweenService:Create(
-		RootPart,
-		TweenInfo.new((RootPart.Position - targetCFrame.Position).Magnitude / SPEED, Enum.EasingStyle.Linear),
-		{CFrame = targetCFrame}
+		HumanoidRootPart,
+		TweenInfo.new((HumanoidRootPart.Position - pos.Position).Magnitude / SPEED, Enum.EasingStyle.Linear),
+		{CFrame = pos}
 	)
 	tween:Play()
 	tween.Completed:Wait()
 end
 
--- 🌀 Vòng lặp farm
-_G.AutoFarmThread = task.spawn(function()
+-- 🌀 Vòng lặp auto farm
+spawn(function()
 	while _G.AutoFarmEnabled and task.wait() do
-		local enemy = GetNearestEnemy()
-		if enemy then
-			local eHRP = enemy:FindFirstChild("HumanoidRootPart")
-			if eHRP then
-				pcall(function()
-					local targetPos = eHRP.CFrame * CFrame.new(0, 0, -DISTANCE)
-					TweenTo(targetPos)
-					if Character:FindFirstChildOfClass("Tool") then
-						Character:FindFirstChildOfClass("Tool"):Activate()
-					end
-				end)
-			end
+		local enemy = GetClosestEnemy()
+		if enemy and enemy:FindFirstChild("HumanoidRootPart") then
+			local targetCFrame = enemy.HumanoidRootPart.CFrame * CFrame.new(0, 0, -DISTANCE)
+			pcall(function()
+				TweenTo(targetCFrame)
+				if Character:FindFirstChildOfClass("Tool") then
+					Character:FindFirstChildOfClass("Tool"):Activate()
+				end
+			end)
 		end
 	end
 end)
