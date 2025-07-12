@@ -1,39 +1,36 @@
-local TweenService = game:GetService("TweenService")
+-- functions.lua
 
 local Functions = {}
 
 function Functions.EquipTool(player, toolName)
-	local char = player.Character
-	local bp = player.Backpack
-	if not char or not bp then return end
-
-	local tool = nil
-	if toolName then
-		tool = char:FindFirstChild(toolName) or bp:FindFirstChild(toolName)
-	else
-		tool = char:FindFirstChildOfClass("Tool") or bp:FindFirstChildOfClass("Tool")
-	end
-
-	if tool then tool.Parent = char end
+    if not toolName then return end
+    for _, tool in ipairs(player.Backpack:GetChildren()) do
+        if tool:IsA("Tool") and tool.Name:lower():find(toolName:lower()) then
+            tool.Parent = player.Character
+            break
+        end
+    end
 end
 
-function Functions.TweenTo(player, pos)
-	local char = player.Character
-	if not char then return end
-	local hrp = char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
+function Functions.TweenTo(player, position)
+    local hrp = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+    if not hrp then return end
 
-	local distance = (hrp.Position - pos).Magnitude
-	local speed = 100
-	local time = distance / speed
-	local tween = TweenService:Create(hrp, TweenInfo.new(time, Enum.EasingStyle.Linear), {CFrame = CFrame.new(pos)})
-	tween:Play()
-	tween.Completed:Wait()
+    local TweenService = game:GetService("TweenService")
+    local tween = TweenService:Create(hrp, TweenInfo.new(0.5), {CFrame = CFrame.new(position)})
+    tween:Play()
 end
 
-function Functions.AutoQuest(player, mobName)
-	-- Blox Fruits không dùng NPC bình thường để nhận Quest,
-	-- bạn có thể bỏ hoặc tự bổ sung nếu game hỗ trợ.
+function Functions.AutoQuest(player, enemyName)
+    local quests = workspace:FindFirstChild("QuestSystem")
+    if not quests then return end
+
+    local quest = quests:FindFirstChild("GetQuest")
+    if quest then
+        fireclickdetector(quest.ClickDetector)
+        wait(0.5)
+        fireclickdetector(quest[enemyName].ClickDetector)
+    end
 end
 
 return Functions
