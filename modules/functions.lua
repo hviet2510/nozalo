@@ -4,7 +4,7 @@ function Functions.EquipTool(player, toolName)
 	local backpack = player:FindFirstChild("Backpack")
 	if not backpack or typeof(toolName) ~= "string" then return end
 
-	for _, tool in pairs(backpack:GetChildren()) do
+	for _, tool in ipairs(backpack:GetChildren()) do
 		if tool:IsA("Tool") and tool.Name:lower() == toolName:lower() then
 			tool.Parent = player.Character
 			break
@@ -12,32 +12,37 @@ function Functions.EquipTool(player, toolName)
 	end
 end
 
-function Functions.TweenToBehind(player, mob, distance)
-	local char = player.Character
+function Functions.TweenTo(position)
+	local char = game.Players.LocalPlayer.Character
 	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	local mobHRP = mob and mob:FindFirstChild("HumanoidRootPart")
-	if not hrp or not mobHRP then return end
+	if not hrp then return end
 
-	local behindPos = mobHRP.Position - (mobHRP.CFrame.LookVector.Unit * (distance or 10))
-	local goal = {CFrame = CFrame.new(behindPos)}
-	local tween = game:GetService("TweenService"):Create(hrp, TweenInfo.new(0.5, Enum.EasingStyle.Linear), goal)
+	local TweenService = game:GetService("TweenService")
+	local tween = TweenService:Create(hrp, TweenInfo.new(0.5), {CFrame = CFrame.new(position)})
 	tween:Play()
 	tween.Completed:Wait()
 end
 
-function Functions.AutoQuest(player, enemyName)
-	local quests = workspace:FindFirstChild("QuestSystem")
-	if not quests then return end
+function Functions.StartQuest(questName, levelIndex)
+	local npc = workspace:FindFirstChild(questName)
+	if not npc then
+		warn("[Quest] Không tìm thấy NPC: " .. questName)
+		return
+	end
 
-	local questGiver = quests:FindFirstChild("GetQuest")
-	if questGiver and questGiver:FindFirstChild("ClickDetector") then
-		fireclickdetector(questGiver.ClickDetector)
-		task.wait(0.5)
+	local click = npc:FindFirstChildOfClass("ClickDetector")
+	if not click then return end
 
-		local questButton = questGiver:FindFirstChild(enemyName)
-		if questButton and questButton:FindFirstChild("ClickDetector") then
-			fireclickdetector(questButton.ClickDetector)
-		end
+	fireclickdetector(click)
+	task.wait(0.5)
+
+	local gui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("QuestFrame")
+	if gui then return end
+
+	-- Giả lập chọn quest theo button
+	local button = npc:FindFirstChild(tostring(levelIndex))
+	if button and button:IsA("ClickDetector") then
+		fireclickdetector(button)
 	end
 end
 
