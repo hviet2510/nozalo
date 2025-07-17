@@ -1,17 +1,22 @@
--- Bắt đầu log
-print("[Main] Bắt đầu khởi chạy...")
+-- Log bắt đầu
+print("[Main] Bắt đầu khởi chạy NamerPro UI...")
 
--- Load Rayfield UI
+-- Tải Rayfield UI
 local Rayfield = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/Rayfield.lua"))()
-print("[Main] Tải thành công Rayfield UI")
+print("[Main] Đã tải Rayfield UI")
 
--- Load AutoFarm module
+-- Tải AutoFarm
 local AutoFarm = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/autofarm.lua"))()
+print("[Main] Đã tải AutoFarm")
 
--- Tạo cửa sổ chính
+-- Lấy LocalPlayer
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+-- Tạo cửa sổ
 local Window = Rayfield:CreateWindow({
 	Name = "NamerPro UI",
-	LoadingTitle = "Đang khởi động...",
+	LoadingTitle = "Đang khởi động NamerPro...",
 	LoadingSubtitle = "by hviet2510",
 	ConfigurationSaving = {
 		Enabled = false
@@ -22,40 +27,69 @@ local Window = Rayfield:CreateWindow({
 	KeySystem = false
 })
 
--- Tạo Tab Farm Level
-local FarmTab = Window:CreateTab("Farm Level", 4483362458)
+-- Tạo Tab Auto Farm
+local FarmTab = Window:CreateTab("Auto Farm", 4483362458)
 
--- Auto Farm Toggle
+-- Toggle Auto Farm
 FarmTab:CreateToggle({
-	Name = "Auto Farm",
+	Name = "Bật Auto Farm",
 	CurrentValue = false,
-	Flag = "AutoFarm",
-	Callback = function(Value)
-		AutoFarm.Toggle(Value)
+	Flag = "AutoFarmToggle",
+	Callback = function(value)
+		AutoFarm.Toggle(value)
 	end
 })
 
--- Chọn tool từ Backpack
-FarmTab:CreateInput({
-	Name = "Tên tool muốn dùng",
-	PlaceholderText = "Combat, Katana, v.v.",
-	RemoveTextAfterFocusLost = true,
-	Callback = function(tool)
-		AutoFarm.SetTool(tool)
-		print("[AutoFarm] Đã chọn tool:", tool)
+-- Lưu biến dropdown để cập nhật sau
+local ToolDropdown = nil
+
+-- Hàm lấy tool từ Backpack
+local function GetToolsFromBackpack()
+	local tools = {}
+	for _, tool in pairs(LocalPlayer.Backpack:GetChildren()) do
+		if tool:IsA("Tool") then
+			table.insert(tools, tool.Name)
+		end
+	end
+	if #tools == 0 then
+		table.insert(tools, "Không có tool")
+	end
+	return tools
+end
+
+-- Tạo Dropdown chọn Tool
+ToolDropdown = FarmTab:CreateDropdown({
+	Name = "Chọn Tool",
+	Options = GetToolsFromBackpack(),
+	CurrentOption = nil,
+	Flag = "ToolDropdown",
+	Callback = function(option)
+		if option ~= "Không có tool" then
+			AutoFarm.SetTool(option)
+			print("[NamerPro] Tool đã chọn: "..option)
+		end
 	end
 })
 
--- Khoảng cách tấn công
+-- Nút Làm Mới Tool
+FarmTab:CreateButton({
+	Name = "🔄 Làm Mới Danh Sách Tool",
+	Callback = function()
+		local newTools = GetToolsFromBackpack()
+		ToolDropdown:Refresh(newTools, true)
+		print("[NamerPro] Đã làm mới danh sách tool!")
+	end
+})
+
+-- Slider chỉnh khoảng cách
 FarmTab:CreateSlider({
-	Name = "Khoảng cách đánh quái",
+	Name = "Khoảng Cách Đánh",
 	Range = {5, 30},
 	Increment = 1,
 	CurrentValue = 10,
-	Callback = function(value)
-		AutoFarm.SetRange(value)
-		print("[AutoFarm] Đặt khoảng cách:", value)
+	Callback = function(dist)
+		AutoFarm.SetRange(dist)
 	end
 })
 
-print("[Main] UI đã khởi tạo hoàn tất!")
+print("[Main] Giao diện đã sẵn sàng!")
