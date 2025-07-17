@@ -1,34 +1,30 @@
 local FarmLogic = {}
 
-function FarmLogic.GetEnemy(player, enemyList)
-    -- Lấy leaderstats và Level
-    local leaderstats = player:FindFirstChild("leaderstats")
-    if not leaderstats then
-        warn("[FarmLogic] Không tìm thấy leaderstats!")
-        return nil
-    end
+function FarmLogic.GetEnemyInfo(player, enemyList)
+	local stats = player:FindFirstChild("leaderstats")
+	local level = stats and stats:FindFirstChild("Level")
+	if not level then
+		warn("[FarmLogic] Không tìm thấy Level!")
+		return nil
+	end
 
-    local levelValue = leaderstats:FindFirstChild("Level")
-    if not levelValue then
-        warn("[FarmLogic] Không tìm thấy Level trong leaderstats!")
-        return nil
-    end
+	local lv = level.Value
+	for _, enemy in ipairs(enemyList) do
+		if lv >= enemy.MinLevel and lv <= enemy.MaxLevel then
+			return enemy
+		end
+	end
 
-    local level = levelValue.Value
+	return nil
+end
 
-    -- Tìm enemy phù hợp với level
-    for _, enemy in ipairs(enemyList) do
-        if level >= enemy.MinLevel and level <= enemy.MaxLevel then
-            -- Tìm mob còn sống trùng tên
-            for _, mob in pairs(workspace.Enemies:GetChildren()) do
-                if mob.Name == enemy.Name and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 then
-                    return mob
-                end
-            end
-        end
-    end
-
-    return nil
+function FarmLogic.FindEnemy(enemyName)
+	for _, mob in ipairs(workspace.Enemies:GetChildren()) do
+		if mob.Name == enemyName and mob:FindFirstChild("Humanoid") and mob.Humanoid.Health > 0 and mob:FindFirstChild("HumanoidRootPart") then
+			return mob
+		end
+	end
+	return nil
 end
 
 return FarmLogic
