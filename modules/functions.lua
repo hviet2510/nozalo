@@ -1,49 +1,52 @@
-local Functions = {}
+local AutoFarm = {
+	Active = false,
+	Range = 10,
+	ToolName = "Combat"
+}
 
-function Functions.EquipTool(player, toolName)
-	local backpack = player:FindFirstChild("Backpack")
-	if not backpack or typeof(toolName) ~= "string" then return end
+local Player = game.Players.LocalPlayer
+local EnemyList = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/enemylist.lua"))()
+local FarmLogic = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/farmlogic.lua"))()
+local Functions = loadstring(game:HttpGet("https://raw.githubusercontent.com/hviet2510/nozalo/main/modules/functions.lua"))()
 
-	for _, tool in ipairs(backpack:GetChildren()) do
-		if tool:IsA("Tool") and tool.Name:lower() == toolName:lower() then
-			tool.Parent = player.Character
-			break
+function AutoFarm.SetTool(tool)
+	AutoFarm.ToolName = tool
+end
+
+function AutoFarm.SetRange(r)
+	AutoFarm.Range = tonumber(r) or 10
+end
+
+function AutoFarm.Toggle(state)
+	AutoFarm.Active = state
+	if not state then return end
+
+	task.spawn(function()
+		while AutoFarm.Active do
+			local enemyInfo = FarmLogic.GetEnemyInfo(Player, EnemyList)
+			if enemyInfo then
+				local mob = FarmLogic.FindEnemy(enemyInfo.Name)
+				if mob then
+					Functions.EquipTool(Player, AutoFarm.ToolName)
+					Functions.StartQuest(enemyInfo.QuestNPC, enemyInfo.QuestLevel)
+
+					local pos = mob.HumanoidRootPart.Position - (mob.HumanoidRootPart.CFrame.LookVector * AutoFarm.Range)
+					Functions.TweenTo(pos)
+
+					while AutoFarm.Active and mob and mob.Humanoid.Health > 0 do
+						local tool = Player.Character and Player.Character:FindFirstChildOfClass("Tool")
+						if tool then tool:Activate() end
+						task.wait(0.2)
+					end
+				else
+					task.wait(1)
+				end
+			else
+				warn("[AutoFarm] Không tìm thấy enemy phù hợp level")
+				task.wait(2)
+			end
 		end
-	end
+	end)
 end
 
-function Functions.TweenTo(position)
-	local char = game.Players.LocalPlayer.Character
-	local hrp = char and char:FindFirstChild("HumanoidRootPart")
-	if not hrp then return end
-
-	local TweenService = game:GetService("TweenService")
-	local tween = TweenService:Create(hrp, TweenInfo.new(0.5), {CFrame = CFrame.new(position)})
-	tween:Play()
-	tween.Completed:Wait()
-end
-
-function Functions.StartQuest(questName, levelIndex)
-	local npc = workspace:FindFirstChild(questName)
-	if not npc then
-		warn("[Quest] Không tìm thấy NPC: " .. questName)
-		return
-	end
-
-	local click = npc:FindFirstChildOfClass("ClickDetector")
-	if not click then return end
-
-	fireclickdetector(click)
-	task.wait(0.5)
-
-	local gui = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("QuestFrame")
-	if gui then return end
-
-	-- Giả lập chọn quest theo button
-	local button = npc:FindFirstChild(tostring(levelIndex))
-	if button and button:IsA("ClickDetector") then
-		fireclickdetector(button)
-	end
-end
-
-return Functions
+return AutoFarm
